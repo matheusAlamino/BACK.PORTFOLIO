@@ -1,0 +1,38 @@
+name: Build and deploy API
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@master
+      
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '2.2.x'
+        
+      - name: Build with dotnet 
+        run: dotnet build --configuration Release
+        
+      - name: Test
+        run: dotnet test
+      
+      - name: Publish
+        run: dotnet publish -c Release --output ./Release
+      - name: FTP Deploy
+        uses: SamKirkland/FTP-Deploy-Action@3.0.0
+        with:
+          # Deployment destination server & path. Formatted as protocol://domain.com:port/full/destination/path/
+          ftp-server: ${{ secrets.FTP_SERVER }}
+          # FTP account username
+          ftp-username: ${{ secrets.FTP_USERNAME }}
+          # FTP account password
+          ftp-password: ${{ secrets.FTP_PASSWORD }}
+          # The local folder to copy, defaults to root project folder
+          local-dir: /home/runner/work/MyApp/MyApp/publish/
